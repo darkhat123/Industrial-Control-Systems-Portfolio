@@ -15,6 +15,9 @@ This project focuses on demonstrating a safety aware state machine used to contr
 - Motor
 - Pneumatic pusher
 
+# State machine flow 
+
+<img width="1363" height="565" alt="image" src="https://github.com/user-attachments/assets/eb964ae7-ea7d-4ae6-b7d2-8075092ec9fc" />
 
 # Program
 
