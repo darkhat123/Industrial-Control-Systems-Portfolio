@@ -12,8 +12,8 @@ This project focuses on demonstrating a safety aware state machine used to contr
 - Ready
 
 ## Outputs
-Motor
-Pneumatic pusher
+- Motor
+- Pneumatic pusher
 
 
 # Program
@@ -21,10 +21,12 @@ Pneumatic pusher
 ## Initialising circuit
 This ensures that only when the system is determined ready, the state is in idle and the start button is pressed will the next stage begin.
 The second rung is focused on ensuring that if the safetycirucit is broken or the stopbutton is pressed that the machine will return itself to the idle state
+
 <img width="692" height="387" alt="image" src="https://github.com/user-attachments/assets/0e89e5ae-7900-49db-99e2-93f84598eb2c" />
 
 ## Start the conveyor until an object reaches the sensor
 This ensures that the conveyor coil is energised until the object sensor is energised, which will kill the conveyor and move to the pneumatic pusher stage
+
 <img width="780" height="312" alt="image" src="https://github.com/user-attachments/assets/05dad075-41da-4eaa-86e2-46eaf0fd13a8" />
 
 ## Conveyor stopped and arm ready, begin pushing
