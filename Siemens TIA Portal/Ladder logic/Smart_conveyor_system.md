@@ -35,7 +35,8 @@ This ensures that the pusher is in its intended position, and uses a set bit to 
 <img width="723" height="325" alt="image" src="https://github.com/user-attachments/assets/6bc03a1e-f24f-48db-a57b-94b775f0499e" />
 
 ## Conveyor fully extended, begin retracting, once retracted return to stage 0
-<img width="723" height="325" alt="image" src="https://github.com/user-attachments/assets/3b5b903c-d881-4e1a-aa8d-1dc9635e0a20" />
+<img width="722" height="282" alt="image" src="https://github.com/user-attachments/assets/4d9346a0-3580-4f35-a81d-0337335f81ce" />
+
 
 
 
