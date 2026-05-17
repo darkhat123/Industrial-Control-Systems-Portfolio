@@ -1,3 +1,24 @@
+# Introduction
+This project focuses on demonstrating a safety aware state machine used to control a conveyor belt sorting system, this utilises interlocks to prevent the machine from running when the safetycircuit is breached, the state machine is used to ensure that every event that is expected occurs and that once the event is complete it can safely transition to the next stage. The following physical inputs and outputs are:
+
+## Inputs
+- Startbutton
+- Stopbutton
+- Safetycircuit
+- ObjectSensor
+- Retracted_arm_sensor
+- Extended_arm_sensor
+- State
+- Ready
+
+## Outputs
+- Motor
+- Pneumatic pusher
+
+# State machine flow 
+
+<img width="1363" height="565" alt="image" src="https://github.com/user-attachments/assets/eb964ae7-ea7d-4ae6-b7d2-8075092ec9fc" />
+
 <img width="736" height="294" alt="image" src="https://github.com/user-attachments/assets/5df3e497-d0e8-408c-aad6-8192469372b4" />
 <img width="648" height="213" alt="image" src="https://github.com/user-attachments/assets/0516af92-ace9-4669-9e55-4c4f600e9234" />
 <img width="648" height="246" alt="image" src="https://github.com/user-attachments/assets/80fc17b5-d416-4523-a405-b9dd30b5f7bc" />
