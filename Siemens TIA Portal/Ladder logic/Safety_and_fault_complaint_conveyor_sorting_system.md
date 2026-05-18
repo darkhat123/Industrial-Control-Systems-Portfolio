@@ -42,8 +42,8 @@ This project focuses on demonstrating a safety and fault aware state machine use
 
 # State machine flow 
 <img width="1363" height="565" alt="image" src="https://github.com/user-attachments/assets/eb964ae7-ea7d-4ae6-b7d2-8075092ec9fc" />
-## Safety Logic diagrman
 
+## Safety Logic diagrman
 <img width="294" height="542" alt="image" src="https://github.com/user-attachments/assets/d3fdd17d-e7ef-4d4b-90e0-4b0424649a58" />
 
 ## Fault Detection and Reset Logic diagrman
@@ -90,3 +90,13 @@ With the last state only switching when the arm is ensured to be retracted and t
 # Pusher inactive and waiting to retract
 IN this rung we dont need to energise any coil, since the solenoid is powered one way and only returns when deenergised we just need to monitor to ensure the arm is retracted before feeding the next box in to the sequence, if it returns then the state changes, if not the fault is logged and the bit is set, halting the machine
 <img width="1046" height="372" alt="image" src="https://github.com/user-attachments/assets/8614f3d4-e549-4253-bbf2-3d31f5631d64" />
+
+# Simulation and testing the logic
+Before we can start the simulation and ensure that the new code is downloaded to the device, we must ensure that we can easily monitor and modify all of the key values that we will interact with in a watch table. This allows us to easily toggle bits on and ensure that bits that we need to force for testing operations are easily accessible. 
+
+Watch tables can interact with many different places containing our variables including
+- PLC Tags, this is the defacto place where we assign our physical inputs and outputs and even memory addresses, these are the physical addresses of the PLC and typically hold global input and output variables linked to I/O especially, this is typically simple integers and booleans
+- Data blocks, these are used to organise certain variables that may be necessary for complex data sets or recipes that require many variables, these are globally accessible but instance db's can be speficic to one single function> These can hold complesx structures like complex nested arrays or user definied types.
+
+
+
