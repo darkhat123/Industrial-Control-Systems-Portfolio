@@ -1,40 +1,47 @@
 # Introduction
 This project focuses on demonstrating a safety and fault aware state machine used to control a conveyor belt sorting system, this utilises safety and fault interlocks to prevent the machine from running when the safetycircuit is breached, or a fault occurs in any stage of the state machine. The safety interlock and fault active combine to determine the machine being in the ready state, human interaction determines whether the machine moves into automatic mode, this automatic mode, is fed to the system permissive bit to ensure that no stages of the machine are active if any of the underlying conditions are breached. 
-## Inputs
+## Inputs and Outputs
 
 ### Safety Variables 
--Guard door feedback, physically wired nc meaning a healthy unopened door allows power to flow to the input, BOOL,NO contact
+- Guard door feedback, physically wired nc meaning a healthy unopened door allows power to flow to the input, BOOL,NO contact
 - Global Estop not pressed, wired NC also - BOOL,NO contact
 - Safety Sensor Feedback, wired NC - BOOL, NO contact
 - Safetyresetbutton, logical no used to detect press of button, BOOL, NO contctact
 - Seftyresetbit, logical bit used to represent whether button was pressed and released each scan cycle, true until released, once false the action can be triggered again, prevents the machine bypassing safetyreset, BOOL
 - Safetycircuit, the bit uses to represent whether all safety requirements have been met, calculated an an output of the condistions and then passed back as input to latch the safetycircuit so long as all conditions stay met, BOOL, COIL and NO contact
 
- ### Fault Variables
+
+ ### Fault Variables - Detection and Resetting
  - Pusherextfault, the pusher has been in the extending phase and has detected a fault with the extension process, the output is set using a SET bit to ensure the fault is active till an operator clears it, this is then fed in to a faultactive variable which waits for any of the faults to become active before transitioning into the faultactive state, any number can be on and the same effect is had, the burden of ensuring faults are cleared are passed to the human operator
  - pusherretfault, same as pusher but detects an issue during the retracting stage
  - conveyorfault, detects any errors in the delivery of the box to the sensor and flings an error to check the conveyor for blockages or for issues with the motor
- - fault_reset_pb, this button waits for the operator to press to reset the fault, this sends a trigger to the p trig fucntion block which one shot resets the faults until released and pressed again
- - fault_reset_bit, this is used to remember whether the button has been released between scan cycles
- - fault_active, this bit uses the set logic used in any of the fault detection logic to determine whether there is an active fault, this is latched on the condition all faults remain inactive, any occur and this will become 
-- Startbutton
-- Stopbutton
-- Safetycircuit
-- ObjectSensor
-- Retracted_arm_sensor
-- Extended_arm_sensor
-- State
-- Ready
+ - fault_cleared_pb, this button waits for the operator to press to reset the fault, this sends a trigger to the p trig fucntion block which one shot resets the faults until released and pressed again
+ - fault_cleared_bit, this is used to remember whether the button has been released between scan cycles
+ - fault_active, this bit uses the set logic used in any of the fault detection logic to determine whether there is an active fault, this is latched on the condition all faults remain inactive, any occur and this will become
+ - conveyorfaultlamp, this bit is used to light up the lamp to let perators know exactly where the fault lies
+ - pusherfaultlamp, same as conveyorfault, both extend and retract light up the same light, however their inputs will be used to indicate the error separately in the HMI
 
-## Outputs
-- Motor
-- Pneumatic pusher
+
+### Autocycle initialisation and Opearation variables
+- Startbutton, the input used to force the macbine into auto mode where it can work autonomously, NO, BOOL
+- Stopbutton, input used to monitor that the stop button is healthy, any cut to the power via fault or operation will halt the circuit, Wired NC physically, NO monitors health
+- Ready, used to check that the machines safetycircuit is intact and there are no faults active, once defined it prevents the use of multiple contacts, BOOL, COIL
+- Autocycleactive, this is the bit to represent the machine being allowed to enter its automatic mode, and is latched based on the underlying conditions remaining true
+- Systempermissive, this is the final variable assigned once autocycleactive is assigned, this will authorise the machine to perform operations and actuations solong as all underlying logic is true
+
+## State machine Variables
+- State, integer value which is used to increment through each of the stages via assignment operators and comparison operators, this ensures that only once the event in the previous stage has occured and the transition conidtion is satisfied, that the new state will begin, allowing us to have an assurance that we are indeed in this stage of the process
+
 
 # State machine flow 
-
-
-
 <img width="1363" height="565" alt="image" src="https://github.com/user-attachments/assets/eb964ae7-ea7d-4ae6-b7d2-8075092ec9fc" />
+## Safety Logic diagrman
+
+<img width="294" height="542" alt="image" src="https://github.com/user-attachments/assets/d3fdd17d-e7ef-4d4b-90e0-4b0424649a58" />
+
+## Fault Detection and Reset Logic diagrman
+
+<img width="294" height="542" alt="image" src="https://github.com/user-attachments/assets/cc60c0c0-586b-4c7a-9cc7-0737f0ae0ac8" />
 
 ## Safety Circuit
 This part of the program is concerned with ensuring that all of the safety features being monitored at any point by the PLC input are indeed true and therefore safe. These all utilise normally open contacts so that aslong as the power flows to this contact indicates a healthy status, such as Estop not pressed or guard door closed. It uses a positive trigger block to monitor for the press of the safety reset button which is pressed when all of the inputs are assumed to be true for the Human operator. Only when these conditions are all true, and when the button is pressed for a single scan cycle, will the safetycircuit be activated, if for any reason, any of these conditions become untrue, the latch will prevent the circuit from remaining true and will force it back into evaluating the conditions in the next scan, this of course will also halt the production process. The positive triggers purpose is to nesure that the safety circuit can only be reset with each button press, any button jams or issues will not be registered past the current scan cycle, the state of whether the button has been released prior id monitored by the safetyresetbit and ensures that the logic wont fire unless released and pressed again.Whilst the contacts in the code are normally open, many of these safety features would be NC, where there healthy state is maintained via the closed contact, any issues and that will open, and the sensor input will become deenergised and stop the circuit.
