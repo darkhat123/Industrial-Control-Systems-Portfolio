@@ -1,5 +1,5 @@
 # Introduction
-This project focuses on demonstrating a safety and fault aware state machine used to control a conveyor belt sorting system, this utilises safety and fault interlocks to prevent the machine from running when the safetycircuit is breached, or a fault occurs in any stage of the state machine. The safety interlock and fault active combine to determine the machine being in the ready state, human interaction determines whether the machine moves into automatic mode, this automatic mode, is fed to the system permissive bit to ensure that no stages of the machine are active if any of the underlying conditions are breached. 
+This project focuses on demonstrating a safety and fault aware state machine used to control a conveyor belt sorting system, this utilises safety and fault interlocks to prevent the machine from running when the safetycircuit is breached, or a fault occurs in any stage of the state machine. The safety interlock and fault active combine to determine the machine being in the ready state, human interaction determines whether the machine moves into automatic mode, this automatic mode, is fed to the system permissive bit to ensure that no stages of the machine are active if any of the underlying conditions are breached. Given that all of these safety and fault condtions are satisifed, then the machine will begin operating. The four states that it cycles betwee are moving the box to the sensor, detecting the object, pushing the object and retracting the arm back. This allows the machine to operate idnependently and process the packages on the conveyor system. Additionally Object Orientted Programming was used to allow the model to scale to any number of pushers, motors and sensors without having to rewrite the logic for each of the components. Instead we define the strcuture common to every instance of the componenent and allow variables such as on/off delay to be specifiied at the creation of the instance. Furthermore encapsulation of each components inputs, outputs and data has been acheived via the use of function blocks, each instance of a sensor will have its own instance of the variables defined in its table. This means that all of the sensors can work on their own independent data and as their purpose is intended, they can take global inputs that may be used by all components and produce global outputs that may be used by more than the single component
 # Inputs and Outputs
 
 ## Safety Variables 
@@ -50,46 +50,86 @@ This project focuses on demonstrating a safety and fault aware state machine use
 
 <img width="294" height="542" alt="image" src="https://github.com/user-attachments/assets/cc60c0c0-586b-4c7a-9cc7-0737f0ae0ac8" />
 
-# Safety Circuit ( Network 1)
-This part of the program is concerned with ensuring that all of the safety features being monitored at any point by the PLC input are indeed true and therefore safe. These all utilise normally open contacts so that aslong as the power flows to this contact indicates a healthy status, such as Estop not pressed or guard door closed. It uses a positive trigger block to monitor for the press of the safety reset button which is pressed when all of the inputs are assumed to be true for the Human operator. Only when these conditions are all true, and when the button is pressed for a single scan cycle, will the safetycircuit be activated, if for any reason, any of these conditions become untrue, the latch will prevent the circuit from remaining true and will force it back into evaluating the conditions in the next scan, this of course will also halt the production process. The positive triggers purpose is to nesure that the safety circuit can only be reset with each button press, any button jams or issues will not be registered past the current scan cycle, the state of whether the button has been released prior id monitored by the safetyresetbit and ensures that the logic wont fire unless released and pressed again.Whilst the contacts in the code are normally open, many of these safety features would be NC, where there healthy state is maintained via the closed contact, any issues and that will open, and the sensor input will become deenergised and stop the circuit.
-<img width="736" height="294" alt="image" src="https://github.com/user-attachments/assets/5df3e497-d0e8-408c-aad6-8192469372b4" />
+# Safety Circuit ( Network 1 - Check all inputs, Energise the coil if all true)
+This part of the program is concerned with ensuring that all of the safety features being monitored at any point by the PLC input are indeed true and therefore safe. These all utilise normally open contacts so that aslong as the power flows to this contact indicates a healthy status, such as Estop not pressed or guard door closed. This does not utilise a Set instruction for the coil as we only want this to be energised for aslong as these inputs remain true
+<img width="867" height="213" alt="image" src="https://github.com/user-attachments/assets/34856a8f-e269-4655-ab43-a6d64ea1e1c2" />
 
-# Fault detection circuit( Network 2)
-Placing the detection here ensures that safety is assessed first, then faults are assessed so any changes in the fault logic state is propogated downwards and doesnt require a new scan cyle to apply any resets that may be used and the system being ready only when no faults are detected.The logic has been used to ensure that if any of the faults are active then the machine is in fault state and is latched unless otherwise reset.
-<img width="648" height="353" alt="image" src="https://github.com/user-attachments/assets/d3419daf-c0c9-4a3e-accd-5947ea64986a" />
+# Safety Circuit ( Network 2 - Wait for system reset button and create a reset pulse bit)
+In this network we are monitoring for a momentary press of the systemreset button using a p trig instruction, this uses an additional edge detection bit that ensures that the button has been released prior to allowing it to energise the circuit again. This prevents taping down of buttons by operators or situations where the button becomes stuck. Only the first press will have any effect on the subsequent rungs, unless the button is explicitly released between these points
+<img width="806" height="250" alt="image" src="https://github.com/user-attachments/assets/d4f94ae8-e45c-41ed-9efe-47d8c118a455" />
 
-# Fault reset circuit (Network 3)
-This circuit is placed before any of our permissives as it must be evaulated before me move to evaluating whether the machine is in a state to be set to ready, again the positive trigger is used to ensure no human error is involved in activating the reset. The reset button will clear all faults, so it is assumed these have all been assessed before beginning. if not they will quicky stop the machine again.
+# Safety Circuit ( Network 3 - Monitor for reset pulse, ensure safetycircuit healthy, then latch the safetycircuit coil )
+Finally in this network we monitor for the system reset pulse for the one scan cycle, given this is pressed and their are no issues with safety at the present time then the safetycoil will become active and will latch until any of the safetyconditions are again broken
+<img width="820" height="297" alt="image" src="https://github.com/user-attachments/assets/6ceaa073-95bf-49bc-9905-7678dbabb9bf" />
 
-<img width="648" height="261" alt="image" src="https://github.com/user-attachments/assets/f1a7a8d3-0fa5-47c1-a8ab-dfb0353b8555" />
 
-# Machine ready logic (Network 4)
-This uses both the output of the above networks to ensure that the machine is indeed ready before allowing any interaction from the operator to affect the machines state
+# Global Fault Reset circuit( Network 4 - Fault reset logic )
+This circuit is placed before any of our permissives as it must be evaulated before me move to evaluating whether the machine is in a state to be set to ready, again the positive trigger is used to ensure no human error is involved in activating the reset. The reset button will clear all faults, so it is assumed these have all been assessed before beginning. if not they will quicky stop the machine again. The fault reset logic is implemented here so that the faults are cleared before the detection happens again, if the detection then finds another fault then the reset will come after and ensures that the machine does not stay active for the scan cycle.
 
-<img width="648" height="213" alt="image" src="https://github.com/user-attachments/assets/0516af92-ace9-4669-9e55-4c4f600e9234" />
+<img width="700" height="372" alt="image" src="https://github.com/user-attachments/assets/eb34698d-f604-4004-bf9c-384af1daf09b" />
 
-# Autocycle active logic (Network 5)
-In this rung we pass the permissives output down and use our inputs to determine if the machine is indeed ready to begin working automatically and independent of human interaction, the fault and safety conditions are checked here again to ensure that the machine is ready, when the startbutton is pressed, if no issues are present in the stop button then the machine goes into auto mode and latches here
+# Pneumatic Pusher Fault Reset circuit( Network 5 - Fault reset logic )
+Just like the above reset circuit, this is simply focused on resetting local logic and ensures that the operator is aware of which faults are causing issues
+<img width="736" height="257" alt="image" src="https://github.com/user-attachments/assets/84f41a20-a0a0-4871-a4a9-7d13ce805ebe" />
 
-<img width="648" height="246" alt="image" src="https://github.com/user-attachments/assets/80fc17b5-d416-4523-a405-b9dd30b5f7bc" />
+# Machine ready Circuit ( Network 6- ensure the machine is in the ready state)
+In this circuit we are using the previously defined networks outputs from above to determine whether or not the machine is ready, given the safetycircuit is healthy, the stop button is healthy and not pressed, and no fault is active, then the machine is considered ready
 
-# Systempermissive assigned (Network 6)
+<img width="717" height="242" alt="image" src="https://github.com/user-attachments/assets/2dfbecc3-23d0-4e14-83d3-b32549798d6a" />
+
+# Start button one shot for Autocycle Active (Network 7 - Uses a p-trig to ensure the startbutton is actually pressed)
+In this rung we use a startbuttons momentary press to feed to the p-trig block, this will then set the startsystempulse bit for one scan cycle, which will be fed to the next rung
+<img width="685" height="218" alt="image" src="https://github.com/user-attachments/assets/6e52a97d-20d6-4657-9c5d-b6963d238c74" />
+
+
+# AutocycleActive circuit (Network 8 - Used to allow the machine to enter auto mode)
+This network is focused on checking that the machine is ready, the start button one shot has been energised, given these conditions are met then the autocycle will become active and will latch, this latch is dependent on the machine continuing to be in the ready state, if any of the inputs holding ready true become false, then this will also become deenergised
+<img width="956" height="321" alt="image" src="https://github.com/user-attachments/assets/407b4b4d-cc97-4a73-aa66-653e02f679fb" />
+
+# Systempermissive assigned (Network 9 - Used when the machine must actuate or change the state)
  The machine is now acting independently aslong as the previous routine does not change, this bit is used to ensure no actions are taken without this bit remaining true through the process
-<img width="648" height="180" alt="image" src="https://github.com/user-attachments/assets/83aa2c3d-ece3-48a9-ab30-79dbef9a05ce" />
+<img width="838" height="212" alt="image" src="https://github.com/user-attachments/assets/91553be4-34f6-4439-b635-1f823ad94f35" />
 
-# Idle state (Network 7)
-In this rung we use the system permissive to ensure that the rung operates given this is active, then we check to see if the object sensor is clear, if the object sensor is clear then the machine moves into the motor running state
-<img width="648" height="243" alt="image" src="https://github.com/user-attachments/assets/13322518-a8ef-480f-b5ec-faf617aa31bc" />
+# State 0 - Checking to ensure that the sensor is not blocked before beginning
+In this network we are using the comparator operator to compare the state of the state machine to the defined value, given its in this state it will check to see if the sensor is blocked, if the sensor is blocked for more than the specified time, a fault is raised and the system enters the fault state, however if the sensor is clear for long enough, then the state is progressed to the conveyor moving the box. Set logic is used with the fault to ensure that even if momentarily true for any of the faults, the fault is active until explicitly reset
 
-# Motor running and waiting for valid box detection, ensuring the arm is retracted before switching to the pushing state (Network 8)
-In this rung we ensure that aslong as the object sensor is clear that the motor is running, the next rung focuses on detecting if the sensor is indeed acitvated for 2s to ensure that this is indeed a valid box, then it will move into the next state, given that the arm of the pusher is also retracted. If the sensor does not detect an object in a given amount of time then a fault is set in this scan cycle stopping the system in the next scan cycle fault circuit.
-<img width="1046" height="414" alt="image" src="https://github.com/user-attachments/assets/98626b5f-4c9b-49ca-b8c9-c242e704058f" />
-# Pusher active and waiting for the pusher to extend ( Network 9)
-With the last state only switching when the arm is ensured to be retracted and the object has been detected, the state in the next rung implies this is true, so the pusher begins pushing the box aslong as the arm is not extended, ensuring it is killed the second the arm is fully extended. If the pusher becomes extended for long enouch then the next state begins to retract the pusher back, if the pusher is not extended after a given time the fault bit is set.
-<img width="1046" height="431" alt="image" src="https://github.com/user-attachments/assets/4803f6c6-1a03-4942-9aae-eee5c311b882" />
-# Pusher inactive and waiting to retract (Network 10)
-IN this rung we dont need to energise any coil, since the solenoid is powered one way and only returns when deenergised we just need to monitor to ensure the arm is retracted before feeding the next box in to the sequence, if it returns then the state changes, if not the fault is logged and the bit is set, halting the machine
-<img width="1046" height="372" alt="image" src="https://github.com/user-attachments/assets/8614f3d4-e549-4253-bbf2-3d31f5631d64" />
+<img width="1055" height="380" alt="image" src="https://github.com/user-attachments/assets/7a761897-2b5e-4300-aea0-fc97fff1ae88" />
+
+# State 1 - Move the box until the sensor detects the box as being present
+In the following network we utilise a function block for the internal logic associated with the sensor, the internal logic is simple for the function block, it ensures that the object sensor must first be on for a specified period of time before being recognised and must then be off for a certain period of time before the filtered output becomes true, this ensures that the sensor is truely registering a box as present and not malfunctioning. The actual logic in this network ensures that aslong as the object sensor is clear, the motor runs, when the sensor block registers a successful box detection, and the arm is retracted then the filtered output is passed to our state transition, if the state is active and the transition event is satisfied, the pusher extending stage begins, otherwise if the timer is exceeded then the conveyor fault is set and the machine becomes inactive.
+
+<img width="1032" height="492" alt="image" src="https://github.com/user-attachments/assets/64fbcab7-059a-4ce6-ae36-fb31809809a0" />
+
+# State 2 - Issue the push command to the pusher function block
+Now we are in the pushing stage we pass this state directly into our extendcmd, aslong as the machine is at this state, the extend cmd will be issued, within the pusher function block logic is used to check that the arm is retracted and not extended before pushing, then it monitors to ensure the push takes the expected amount of time, once the arm is fully extended and confirmed with the global limit sensor for the pusher, the state transition in subsequent rungs checks that the pusher extended status is true and its in the push state, if so, then it moves on to the retract state. The sytem permissive is what enables the function block to run.
+
+<img width="916" height="492" alt="image" src="https://github.com/user-attachments/assets/9afa320d-6d25-4fd0-9136-e6ca3795d7b6" />
+
+# State 3- Issue the retract command to the pusher function block
+Just like in the pushing state we ensure that the arm is extended and not retracted, if so we energise the retracting coil of the pusher, the retracting time is measured to ensure the pusher is operating as expected, given that the global retracted limit switch are active and subsequently the pusher retracted status becomes true, then we can begin our state transiton back to state 0.
+
+
+# State transitions for the machine 
+The following three networks are used to monitor for the state transition event and to assign a different value using the move Operator
+<img width="543" height="160" alt="image" src="https://github.com/user-attachments/assets/28a46a54-6866-4b28-a062-9778623d0153" />
+<img width="667" height="173" alt="image" src="https://github.com/user-attachments/assets/95e5d05d-820f-4c1c-a85e-39dcb23ea73c" />
+<img width="731" height="216" alt="image" src="https://github.com/user-attachments/assets/9fcf0d04-1631-4ab0-8113-3ffe6c85804c" />
+
+# Fault detection circuit
+The final rung of the actual program is where we aggregate all the fault detections of the scan cycle and energise the fault active given any of the following faults become true, the logic in the beginning that allows the resets will always come after this, it ensures that if the reset is performed then the machine will not suddenly start if a fault is still active.
+<img width="692" height="396" alt="image" src="https://github.com/user-attachments/assets/9606ad2a-c79e-4d23-a23f-b36f1f7ee65d" />
+
+# Simulatiion toggle block
+The final block simply ensures the simulation blocks values are used over the phsyical values of the plc program 
+<img width="716" height="210" alt="image" src="https://github.com/user-attachments/assets/7e793f95-beee-4cc9-9027-0b9a7e8a8d46" />
+
+
+
+
+
+
+
+
 
 # Simulation and testing the logic 
 Before we can start the simulation and ensure that the new code is downloaded to the device, we must ensure that we can easily monitor and modify all of the key values that we will interact with in a watch table. This allows us to easily toggle bits on and ensure that bits that we need to force for testing operations are easily accessible. 
