@@ -123,6 +123,29 @@ The final rung of the actual program is where we aggregate all the fault detecti
 The final block simply ensures the simulation blocks values are used over the phsyical values of the plc program 
 <img width="716" height="210" alt="image" src="https://github.com/user-attachments/assets/7e793f95-beee-4cc9-9027-0b9a7e8a8d46" />
 
+# Defining the sensor function block
+As seen in previous images the sensor block is used without having to know the underlying logic, all we need to do is configure the on and off delay for our specific sensor, and that instance of the sensor will have those values. 
+
+The following shows all of the variables defined for the sensor
+<img width="1093" height="557" alt="image" src="https://github.com/user-attachments/assets/6806614d-9f60-4a6d-8c3c-c86df42dd418" />
+
+This image shows the actual logic used for the sensor
+<img width="1091" height="382" alt="image" src="https://github.com/user-attachments/assets/3e713bd9-c0ae-4488-bfcf-ec9b846f9bed" />
+
+# Defining the pusher function block
+The following shows all of the variables configured for the pusher block
+<img width="1117" height="600" alt="image" src="https://github.com/user-attachments/assets/f948afe6-6e6b-45cc-bb6c-2b6a349d599c" />
+
+The following shows the underlying logic of the pneumatic pusher
+<img width="632" height="407" alt="image" src="https://github.com/user-attachments/assets/65285108-ea3a-4f41-996a-282d3bef4d3a" />
+<img width="717" height="367" alt="image" src="https://github.com/user-attachments/assets/ec3932b2-dafd-4112-a5ad-fcc37274d98a" />
+<img width="922" height="382" alt="image" src="https://github.com/user-attachments/assets/dfefab86-267d-43f8-888d-befa1576135b" />
+<img width="1086" height="393" alt="image" src="https://github.com/user-attachments/assets/e8df7cab-8fa4-44a7-874d-dd8dafe5bd1b" />
+<img width="1090" height="331" alt="image" src="https://github.com/user-attachments/assets/8e93272c-4a07-4b50-879c-a21c56ed860a" />
+<img width="1095" height="292" alt="image" src="https://github.com/user-attachments/assets/6007a7f4-2b7b-4e18-92fa-689156411b27" />
+
+
+
 
 
 
