@@ -17,14 +17,6 @@ This project focuses on demonstrating a safety and fault aware state machine use
 
 
 
-- Guard door feedback, physically wired NC meaning a healthy unopened door allows power to flow to the input, BOOL,NO contact
-- Global Estop not pressed, wired NC also - BOOL,NO contact
-- Safety Sensor Feedback, wired NC - BOOL, NO contact
-- Safetyresetbutton, logical no used to detect press of button, BOOL, NO contctact
-- Safetyresetbit, logical bit used to represent whether button was pressed and released each scan cycle, true until released, once false the action can be triggered again, prevents the machine bypassing safetyreset, BOOL
-- Safetycircuit, the bit uses to represent whether all safety requirements have been met, calculated an an output of the condistions and then passed back as input to latch the safetycircuit so long as all conditions stay met, BOOL, COIL and NO contact
-
-
  ## Fault Variables - Detection and Resetting
  - Pusherextfault, the pusher has been in the extending phase and has detected a fault with the extension process, the output is set using a SET bit to ensure the fault is active till an operator clears it, this is then fed in to a faultactive variable which waits for any of the faults to become active before transitioning into the faultactive state, any number can be on and the same effect is had, the burden of ensuring faults are cleared are passed to the human operator, BOOL, COIL, NO used to detect, Set and reset for latch
  - pusherretfault, same as pusher but detects an issue during the retracting stage, BOOL, COIL, NO used to detect, Set and reset for latch
