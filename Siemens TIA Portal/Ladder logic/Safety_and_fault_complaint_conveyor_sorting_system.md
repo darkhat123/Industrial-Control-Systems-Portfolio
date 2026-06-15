@@ -2,12 +2,26 @@
 This project focuses on demonstrating a safety and fault aware state machine used to control a conveyor belt sorting system, this utilises safety and fault interlocks to prevent the machine from running when the safetycircuit is breached, or a fault occurs in any stage of the state machine. The safety interlock and fault active combine to determine the machine being in the ready state, human interaction determines whether the machine moves into automatic mode, this automatic mode, is fed to the system permissive bit to ensure that no stages of the machine are active if any of the underlying conditions are breached. Given that all of these safety and fault condtions are satisifed, then the machine will begin operating. The four states that it cycles betwee are moving the box to the sensor, detecting the object, pushing the object and retracting the arm back. This allows the machine to operate idnependently and process the packages on the conveyor system. Additionally Object Orientted Programming was used to allow the model to scale to any number of pushers, motors and sensors without having to rewrite the logic for each of the components. Instead we define the strcuture common to every instance of the componenent and allow variables such as on/off delay to be specifiied at the creation of the instance. Furthermore encapsulation of each components inputs, outputs and data has been acheived via the use of function blocks, each instance of a sensor will have its own instance of the variables defined in its table. This means that all of the sensors can work on their own independent data and as their purpose is intended, they can take global inputs that may be used by all components and produce global outputs that may be used by more than the single component
 # Inputs and Outputs
 
-## Safety Variables 
+## Safety Variables
+
+| Component | Physical Wiring | Data type | PLC wiring | Purpose |
+|-----------------|-----------------|-----------------|-----------------|-----------------|
+| Guard door feedback     |   NC wired | BOOL    | NO | Used to ensure the guard door is closed|
+| Global Estop   | NC Wired    | BOOL    | NO | Used to allow an emergency stop to be applied|
+| Safety Sensor| NC wired |BOOL | NO | Used as a separate mechanism to monitor the safety conditions|
+| Safetyresetbutton| NO wired | BOOL| NO| The physical button used to issue a reset to the safetycircuit|
+| SafetyResetBit | N/A | BOOL| NA | The bit in memorym used to monitor whether the safety button must be released before triggering again|
+| SafetycircuitHealthy| N/A | BOOL| N/A| Used to store the result of the safety circuit health check |
+| SafetyResetPulse| N/A | BOOL| N/A| Used to store the result of the p trig after pressing for one scan cycle, allowing a latch to be established|
+| Safetycircuticoil | N/A| BOOL| N/A| Used as the physical representation of safetyhealthy and start command issued|
+
+
+
 - Guard door feedback, physically wired NC meaning a healthy unopened door allows power to flow to the input, BOOL,NO contact
 - Global Estop not pressed, wired NC also - BOOL,NO contact
 - Safety Sensor Feedback, wired NC - BOOL, NO contact
 - Safetyresetbutton, logical no used to detect press of button, BOOL, NO contctact
-- Seftyresetbit, logical bit used to represent whether button was pressed and released each scan cycle, true until released, once false the action can be triggered again, prevents the machine bypassing safetyreset, BOOL
+- Safetyresetbit, logical bit used to represent whether button was pressed and released each scan cycle, true until released, once false the action can be triggered again, prevents the machine bypassing safetyreset, BOOL
 - Safetycircuit, the bit uses to represent whether all safety requirements have been met, calculated an an output of the condistions and then passed back as input to latch the safetycircuit so long as all conditions stay met, BOOL, COIL and NO contact
 
 
