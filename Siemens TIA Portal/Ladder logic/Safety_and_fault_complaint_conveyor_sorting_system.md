@@ -17,20 +17,27 @@ This project focuses on demonstrating a safety and fault aware state machine use
 
 
 
- ## Fault Variables - Detection and Resetting
- - Pusherextfault, the pusher has been in the extending phase and has detected a fault with the extension process, the output is set using a SET bit to ensure the fault is active till an operator clears it, this is then fed in to a faultactive variable which waits for any of the faults to become active before transitioning into the faultactive state, any number can be on and the same effect is had, the burden of ensuring faults are cleared are passed to the human operator, BOOL, COIL, NO used to detect, Set and reset for latch
- - pusherretfault, same as pusher but detects an issue during the retracting stage, BOOL, COIL, NO used to detect, Set and reset for latch
- - conveyorfault, detects any errors in the delivery of the box to the sensor and flings an error to check the conveyor for blockages or for issues with the motor, BOOL, COIL, NO used to detect, Set and reset for latch
- - fault_cleared_pb, this button waits for the operator to press to reset the fault, this sends a trigger to the p trig fucntion block which one shot resets the faults until released and pressed again, BOOL, NO to detect
- - fault_cleared_bit, this is used to remember whether the button has been released between scan cycles, BOOL
- - fault_active, this bit uses the set logic used in any of the fault detection logic to determine whether there is an active fault, this is latched on the condition all faults remain inactive, any occur and this will become, BOOL, COIL, NO for latch
- - conveyorfaultlamp, this bit is used to light up the lamp to let perators know exactly where the fault lies, BOOL, COIL
- - pusherfaultlamp, same as conveyorfault, both extend and retract light up the same light, however their inputs will be used to indicate the error separately in the HMI, BOOL, COIL
+ ## Global Fault Variables - Detection and Resetting
 
+| Component | Physical Wiring | Data type | PLC wiring | Purpose |
+|-----------------|-----------------|-----------------|-----------------|-----------------|
+| Pusher_1_fault | N/A | Bool| Set and Reset | Used to represent the occurence of a fault in the pusher, any fault in the pusher makes this active |
+| conveyorfault | N/A | Bool| Set and Reset | Used to represent a fault in the conveying stage |
+| Sensorfault | N/A | Bool | Set and Reset | Used to represent failure with the sensing stage
+| Faultresetbit | N/A | Bool | N/A | Used to ensure the fault reset must be released before resetting again
+| faultcleared| N/A | Bool | N/A| Used to determine if the fault has been cleared by a press of the button
+| Faultactive | N/A | Bool | N/A| Aggregates any of the individual faults and becomes true when any active|
 
-## Autocycle initialisation and Opearation variables
-- Startbutton, the input used to force the macbine into auto mode where it can work autonomously, NO, BOOL
-- Stopbutton, input used to monitor that the stop button is healthy, any cut to the power via fault or operation will halt the circuit, Wired NC physically, NO monitors health, BOOL
+## Local fault variables - Pneumatic Pusher 
+| Component | Physical Wiring | Data type | PLC wiring | Purpose |
+|-----------------|-----------------|-----------------|-----------------|-----------------|
+| Pusherextfault | N/A | Bool | Set and Reset| Used to represent the occurence of a fault in the pushing stage |
+| Pusherretfault | N/A | Bool| Set and Reset | Used to represent the occurence of a fault in the retracting stage |
+| PusherBothOn | N/A | Bool| Set and Reset | Used to represent if both the limit switches are active, indicates failure |
+| PusherFaultActive | N/A | Bool| N/A | Used to halt the state of the system until the fault is preserved|
+| PusherFaultReset  | N/A | Bool| N/A| Used to represent the fault reset command becoming true and clearning thr fsult|
+
+## Autocycle initialisation and Opearation variablesqwer via fault or operation will halt the circuit, Wired NC physically, NO monitors health, BOOL
 - Ready, used to check that the machines safetycircuit is intact and there are no faults active, once defined it prevents the use of multiple contacts, BOOL, COIL
 - Autocycleactive, this is the bit to represent the machine being allowed to enter its automatic mode, and is latched based on the underlying conditions remaining true, BOOL, COIL and NO for latch
 - Systempermissive, this is the final variable assigned once autocycleactive is assigned, this will authorise the machine to perform operations and actuations solong as all underlying logic is true, BOOL, COIL
