@@ -175,30 +175,8 @@ The following shows the underlying logic of the pneumatic pusher
 <img width="1095" height="292" alt="image" src="https://github.com/user-attachments/assets/6007a7f4-2b7b-4e18-92fa-689156411b27" />
 
 
-
-
-
-
-
-
-
-
-
-# Simulation and testing the logic 
-Before we can start the simulation and ensure that the new code is downloaded to the device, we must ensure that we can easily monitor and modify all of the key values that we will interact with in a watch table. This allows us to easily toggle bits on and ensure that bits that we need to force for testing operations are easily accessible. 
-
-Watch tables can interact with many different places containing our variables including
-- PLC Tags, this is the defacto place where we assign our physical inputs and outputs and even memory addresses, these are the physical addresses of the PLC and typically hold global input and output variables linked to I/O especially, this is typically simple integers and booleans
-- Data blocks, these are used to organise certain variables that may be necessary for complex data sets or recipes that require many variables, these are globally accessible but instance db's can be speficic to one single function> These can hold complesx structures like complex nested arrays or user definied types.
-
-With the watch table defined and all of the necessary values matched to a specific entry in the watch table, we can begin planning how we intend to demonstrate the state of these variables to a human operator, and how we allow them to be able to influence the state of these variables. In our scenario we want to be able to keep everything in the one place for easy access and confgiuration. Furthermore we do not have a machine or network of machines big enough to warrant integrating into a SCADA system.
-
-## Writing Simulation Testing Logic using SCL
-Whilst we do have the options to sit and force values manually and watch the behaviour of the program dependent on the inputs and outsputs we configure, however this is tedious and furthermore can miss nuances in the program that would not be possible to detect with the naked eye, in these scenarios the only way to make sure the machine is working correctly is to physically use testing logic such as SCL to manipulate the variables in the program and determine the effect they have on the programs behaviour under certain scenarios, this allows for rapid testing of all fault scenarios for a component and allows these tests to be repeated on any sensor we use. Furthermore it allows us to make sure the program is safe to deploy to an actual industrial automation environment, before we actually commission it.
-
-Again we will use a function block to create our simulation program, and instead od choosing LAD we will choose SCL, whilst ladder is preferred for troubleshooting technicians, simulation logic will likely be interacted with by ourselves or used by those competent in many PLC programming languages. Furthermore whilst ladder logic is simple to read and understand, it is notoriously difficult to perform a test on ladder logic using another ladder logic program. Whereas when using SCL we have the case statement available, this statement allows us to control the behaviour of the simulation based on the conditions we specify in each case block, for example case 1 might check to see if a button is pressed or not, and choose between two integer values dependent on the outcome, this allows the simulation to react to multiple options and ensures it doesnt get stuck if no other option is available
-
-When writing the simulation, we had to make sure to use some timers, these will be multi instance timers, they will be used many times across the program and have the same presets for all of them
+# Conclusion
+In this project we have designed all of the actual underlying logic for an autonomous conveyor sorting system which can run independently of human interaction given that all fault conditions and safety conditions are met, it utilises a state machine architecture to reduce the need for interlocking at each stage of the process, furthermore it uses positive trigger edge detection to ensure machinery operates only as intended and prevents anyone tampering with the button to keep it constantly running. Furthermore it utilises function blocks to encapsulate the underlying logic of the pneumatic pusher and the sensor and allows for easy modular addition or subtraction of these components from any machine. In the next few projects we will focus on creating process logic that simulates the proper and improper conditions for the conveyor sorting system and allows us to test if our program truly works as intended.
 
 
 
