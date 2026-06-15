@@ -21,7 +21,9 @@ This project focuses on demonstrating a safety and fault aware state machine use
 
 | Component | Physical Wiring | Data type | PLC wiring | Purpose |
 |-----------------|-----------------|-----------------|-----------------|-----------------|
-| Pusher_1_fault | N/A | Bool| Set and Reset | Used to represent the occurence of a fault in the pusher, any fault in the pusher makes this active |
+| Pusher_1_fault_resetbutton | N/A | Bool| NO | Used to represent the occurence of a fault in the pusher, any fault in the pusher makes this active |
+| Pusher_1_fault_resetbit | N/A | Bool| N/A | Used to monitor for the press of a push button to issue a reset for the pusher faults |
+| Pusher_1_fault_resetpulse | N/A | Bool| N/A | Used to store the result of the one shot p trig for the scan cycle |
 | conveyorfault | N/A | Bool| Set and Reset | Used to represent a fault in the conveying stage |
 | Sensorfault | N/A | Bool | Set and Reset | Used to represent failure with the sensing stage
 | Faultresetbit | N/A | Bool | N/A | Used to ensure the fault reset must be released before resetting again
@@ -35,23 +37,38 @@ This project focuses on demonstrating a safety and fault aware state machine use
 | Pusherretfault | N/A | Bool| Set and Reset | Used to represent the occurence of a fault in the retracting stage |
 | PusherBothOn | N/A | Bool| Set and Reset | Used to represent if both the limit switches are active, indicates failure |
 | PusherFaultActive | N/A | Bool| N/A | Used to halt the state of the system until the fault is preserved|
-| PusherFaultReset  | N/A | Bool| N/A| Used to represent the fault reset command becoming true and clearning thr fsult|
+| PusherFaultReset  | N/A | Bool| N/A| Used to represent the fault reset command becoming true and clearing the fault|
 
-## Autocycle initialisation and Opearation variablesqwer via fault or operation will halt the circuit, Wired NC physically, NO monitors health, BOOL
-- Ready, used to check that the machines safetycircuit is intact and there are no faults active, once defined it prevents the use of multiple contacts, BOOL, COIL
-- Autocycleactive, this is the bit to represent the machine being allowed to enter its automatic mode, and is latched based on the underlying conditions remaining true, BOOL, COIL and NO for latch
-- Systempermissive, this is the final variable assigned once autocycleactive is assigned, this will authorise the machine to perform operations and actuations solong as all underlying logic is true, BOOL, COIL
+## Autocycle Startup,  Initailsation and activation
+| Component | Physical Wiring | Data type | PLC wiring | Purpose |
+|-----------------|-----------------|-----------------|-----------------|-----------------|
+| stopbutton | NC | Bool | NO| Used to monitor for a  healthy stop button, if any issue with it the contacts break and the health status is gone|
+| Ready | N/A | BOOL| N/A | Used as the result of ensuring all safety/fault conditions are met before allowing human operation via HMI|
+| startbutton| NO| Bool| NO | Used to monitor for a momentary button press to begin the machine
+| startbuttonbit | N/A | Bool| N/A | Used to ensure the start button has edge detection and only one shot per press so the machine doesnt mistakenly begin|
+| startbuttonpulse| N/A | Bool | N/A | Used to pass the one trig to the startup circuit for one scan cycle, allowing a latch to be established |
+| AutocycleActive | N/A | Bool | N/A | Used to notify the operator the machine is now in automode and opertating independently|
+| SystemPermissive | N/A| Bool| N/A | Used to pass to any actuation or command where the machine makes a decision, relies on all previous inputs|
+
 
 ## State machine Variables
-- State, integer value which is used to increment through each of the stages via assignment operators and comparison operators, this ensures that only once the event in the previous stage has occured and the transition conidtion is satisfied, that the new state will begin, allowing us to have an assurance that we are indeed in this stage of the process, INT
+| Component | Physical Wiring | Data type | PLC wiring | Purpose |
+|-----------------|-----------------|-----------------|-----------------|-----------------|
+| State | N/A | Integer| N/A | Used to determine what stage of the process the machine is currently at, removes the need for heavy interlocking as the state only transitions once previous action completed
+| Pusher_1_ret_status | N/A | Bool| NO | A data representation output from the pusher function block when the physical retracted sensor becomes activated|
+| Pusher_1_ext_status | N/A | Bool| NO | A data representation output from the pusher function block when the physical extended sensor becomes activated|
+| Sensor_1_filtered_output| N/A| Bool| NO | A representation of a box being properly detected using on and off delay timers |
+
 
 ## Physical Sensors and Actuators
-- Objectsensor, a digital input used to detect the presence of the box in normal operation and the lack of a genuine box in fault situations, NO contact to detect a healthy sensor, NC to detect unhelathy sensor, BOOL
-- Motor, this powers the conveyor belt and ensures that the box reaches the pusher, BOOL, COIL
-- Arm_retracted, used to detect if the arm has fully retracted, NO to detect healthy arm, NC to detect faulty arm, BOOL
-- Arm extended, same as the retracted, BOOL
-- Pneumatic, used to energise the solenoid and push the arm, when deenergised, the arm will return to its original retracted position
-- 
+| Component | Physical Wiring | Data type | PLC wiring | Purpose |
+|-----------------|-----------------|-----------------|-----------------|-----------------|
+| ObjectSensor | NO | Bool| NO| Used to monitor for the presence of a box or part |
+| Motor| NO| Bool | Coil| Used to provide power to the motor of the conveyor |
+| Arm_retracted | NO | Bool | NO | Used to ensure the arm is fully retracted|
+| Arm_extended | NO | Bool | NO | Used to ensure the arm is fully extended|
+| Extend_coil| NO | Bool| COIL| Used to power the solenoid responsible for extending the arm|
+| Retract_coil| NO | Bool| COIL| Used to power the solenoid responsible for retracting the arm|
 
 # State machine flow 
 <img width="1363" height="565" alt="image" src="https://github.com/user-attachments/assets/eb964ae7-ea7d-4ae6-b7d2-8075092ec9fc" />
