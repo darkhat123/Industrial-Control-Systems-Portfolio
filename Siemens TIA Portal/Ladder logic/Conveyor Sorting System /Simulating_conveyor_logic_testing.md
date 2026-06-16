@@ -1,24 +1,27 @@
 # Simulation and testing the logic
-When working with PLC programs in tia portal, it can be difficult to manually assign and force values and navigate watch/force tables to be able to effectively test the workings of a conveyor sorting system. In these situations we need a method to be able to manipulate all of the programs variables in a repetitive, time-based manner. This is where simulation blocks come in, simulation blocks are placed at the very end of the program and act as a direct snapshot of the effect of the injected variable, with a simulation block, the plc runs the program top to bottom, and before going to the next scan cycle, updates the process image to contain the current values for all variables and then reaches the block where the simulation runs, with the correct process values now in the simulation table, we can utilise the case operation and boolean logic, the case statememnt is used to sequentially perform operations on the programs variables based on the outcomes of prior branches, this allows us to design an effective testing program that reacts to any situation likely to occur with the machine.
+When working with PLC programs in tia portal, it can be difficult to manually assign and force values and navigate watch/force tables to be able to effectively test the workings of a conveyor sorting system. In these situations, we need a method to be able to manipulate all of the program's variables in a repetitive, time-based manner. This is where simulation blocks come in, simulation blocks are placed at the very end of the program and act as a direct snapshot of the effect of the injected variable, with a simulation block, the plc runs the program top to bottom, and before going to the next scan cycle, updates the process image to contain the current values for all variables and then reaches the block where the simulation runs, with the correct process values now in the simulation table, we can utilise the case operation and boolean logic, the case statememnt is used to sequentially perform operations on the programs variables based on the outcomes of prior branches, this allows us to design an effective testing program that reacts to any situation likely to occur with the machine.
 
 
 Before we can start the simulation and ensure that the new code is downloaded to the device, we must ensure that we can easily monitor and modify all of the key values that we will interact with in a watch table. This allows us to easily toggle bits on and ensure that bits that we need to force for testing operations are easily accessible. 
 
-Watch tables can interact with many different places containing our variables including
-- PLC Tags, this is the defacto place where we assign our physical inputs and outputs and even memory addresses, these are the physical addresses of the PLC and typically hold global input and output variables linked to I/O especially, this is typically simple integers and booleans
-- Data blocks, these are used to organise certain variables that may be necessary for complex data sets or recipes that require many variables, these are globally accessible but instance db's can be speficic to one single function> These can hold complesx structures like complex nested arrays or user definied types.
+Watch tables can interact with many different places containing our variables, including
+- PLC Tags, this is the de facto place where we assign our physical inputs and outputs and even memory addresses. These are the physical addresses of the PLC and typically hold global input and output variables linked to I/O, especially, this is typically simple integers and booleans
+- Data blocks, these are used to organise certain variables that may be necessary for complex data sets or recipes that require many variables. These are globally accessible, but instance DBs can be specific to a single function. These can hold complex structures like complex nested arrays or user-defined types.
 
-With the watch table defined and all of the necessary values matched to a specific entry in the watch table, we can begin planning how we intend to demonstrate the state of these variables to a human operator, and how we allow them to be able to influence the state of these variables. In our scenario we want to be able to keep everything in the one place for easy access and confgiuration. Furthermore we do not have a machine or network of machines big enough to warrant integrating into a SCADA system.
+With the watch table defined and all of the necessary values matched to a specific entry in the watch table, we can begin planning how we intend to demonstrate the state of these variables to a human operator and how we allow them to be able to influence the state of these variables. In our scenario, we want to be able to keep everything in one place for easy access and configuration. Furthermore, we do not have a machine or network of machines big enough to warrant integrating into a SCADA system.
 
 # Defining a simulation function block
 
-Whilst we do have the options to sit and force values manually and watch the behaviour of the program dependent on the inputs and outputs we configure, however this is tedious and furthermore can miss nuances in the program that would not be possible to detect with the naked eye. in these scenarios the only way to make sure the machine is working correctly is to physically use testing logic such as SCL to manipulate the variables in the program and determine the effect they have on the programs behaviour under certain scenarios, this allows for rapid testing of all fault scenarios for a component and allows these tests to be repeated on any sensor we use. Furthermore it allows us to make sure the program is safe to deploy to an actual industrial automation environment, before we actually commission it.
+Whilst we do have the options to sit and force values manually and watch the behaviour of the program dependent on the inputs and outputs we configure, however this is tedious and furthermore can miss nuances in the program that would not be possible to detect with the naked eye. in these scenarios the only way to make sure the machine is working correctly is to physically use testing logic such as SCL to manipulate the variables in the program and determine the effect they have on the programs behaviour under certain scenarios, this allows for rapid testing of all fault scenarios for a component and allows these tests to be repeated on any sensor we use. Furthermore, it allows us to make sure the program is safe to deploy to an actual industrial automation environment, before we actually commission it.
 
-Again we will use a function block to create our simulation program, and instead of choosing LAD we will choose SCL, whilst ladder is preferred for troubleshooting technicians, simulation logic will likely be interacted with by ourselves or used by those competent in many PLC programming languages. Furthermore whilst ladder logic is simple to read and understand, it is notoriously difficult to perform a test on ladder logic using another ladder logic program. Whereas when using SCL we have the case statement available, this statement allows us to control the behaviour of the simulation based on the conditions we specify in each case block, for example case 1 might check to see if a button is pressed or not, and choose between two integer values dependent on the outcome, this allows the simulation to react to multiple options and ensures it doesnt get stuck if no other option is available
+Again, we will use a function block to create our simulation program, and instead of choosing LAD, we will choose SCL, whilst ladder is preferred for troubleshooting technicians, simulation logic will likely be interacted with by ourselves or used by those competent in many PLC programming languages. Furthermore, whilst ladder logic is simple to read and understand, it is notoriously difficult to perform a test on ladder logic using another ladder logic program. Whereas when using SCL we have the case statement available, this statement allows us to control the behaviour of the simulation based on the conditions we specify in each case block, for example case 1 might check to see if a button is pressed or not, and choose between two integer values dependent on the outcome, this allows the simulation to react to multiple options and ensures it doesnt get stuck if no other option is available
 
-When writing the simulation, we had to make sure to use some timers, these will be multi instance timers, they will be used many times across the program and have the same presets for all of them, their main purpose is to allow time for any of the operations we override to take effect in the next scan cycle.
+When writing the simulation, we had to make sure to use some timers; these will be multi-instance timers, which will be used many times across the program and have the same presets for all of them. Their main purpose is to allow time for any of the operations we override to take effect in the next scan cycle.
 
-Currently whilst we have created our function block that will hold all of the simulation logic in one place, currently this will have no effect on any of the variables within the process image or in memory. We must ensure that the function block is called in our main program before we can begin manipulating variables and using time based error detection in SCL. This is placed on a rung with a NO contact placed infront of it, this is a simulationactive contact, when true the function block becomes energised and the simulation can read and write from the same areas as the process image.
+Currently, whilst we have created our function block that will hold all of the simulation logic in one place, this will have no effect on any of the variables within the process image or in memory. We must ensure that the function block is called in our main program before we can begin manipulating variables and using time-based error detection in SCL. This is placed on a rung with a NO contact placed in front of it; this is a simulation-active contact. When true, the function block becomes energised, and the simulation can read and write from the same areas as the process image.
+
+<img width="661" height="173" alt="image" src="https://github.com/user-attachments/assets/6c5e22b6-ce83-468d-b58b-c9d6bfd0fe3f" />
+
 
 # Defining the simulation function block structure
 With the simulation block now created and it placed in the correct place in the program, we can begin to define all of the necessary variables that the simulation logic will need to perform its tasks. 
@@ -37,8 +40,16 @@ With the simulation block now created and it placed in the correct place in the 
 #State0FaultTimer(IN := ("Data_block_1".TestStep = 36),
                   PT := T#5000ms);
 
-#True_sensor_time(IN := ("Data_block_1".TestStep = 42),
-                  PT := T#100ms);
+#True_sensor_on_time(IN := ("Data_block_1".TestStep = 42),
+                  PT := T#120ms);
+
+
+#True_sensor_off_time(IN := ("Data_block_1".TestStep = 43),
+                      PT := T#120ms);
+#Extenson_retracton(IN := ("Data_block_1".TestStep = 45 OR "Data_block_1".TestStep = 48),
+                    PT := T#3000ms);
+#On_delay_limit_sensor(IN := ("Data_block_1".TestStep = 46 OR "Data_block_1".TestStep = 49),
+                       PT := T#220ms);
 
 CASE "Data_block_1".TestStep OF
         
@@ -288,23 +299,70 @@ CASE "Data_block_1".TestStep OF
         
     42: // Have a fully registered sensor input occur
         "Data_block_1".objectsensor := TRUE;
-        IF #True_sensor_time.Q THEN
+        "Data_block_1".Arm_retracted := TRUE;
+        IF #True_sensor_on_time.Q THEN
             "Data_block_1".objectsensor := FALSE;
-            IF #True_sensor_time.Q THEN
-                "Data_block_1".Arm_retracted := FALSE;
-                "Data_block_1".TestStep := 43;
-            END_IF;
+            "Data_block_1".TestStep := 43;
         END_IF;
         
-    43: // Check state is 2 then close the test
+    43: // Ensure enough time for sensor to debounce
+        IF #True_sensor_off_time.Q THEN
+            "Data_block_1".TestStep := 44;
+        END_IF;
+   
+    44: // Check state is 2 then close the test
         IF "Data_block_1".State = 2 THEN
-            "Data_block_1".TestStep := 100;
+            "Data_block_1".Arm_retracted := FALSE;
+            "Data_block_1".TestStep := 45;
         ELSE
-            "Data_block_1".Faultid := 42;
+            "Data_block_1".Faultid := 43;
             "Data_block_1".TestStep := 999;
         END_IF;
+    45: // Give enough tme to simulate pusher
+        IF #Extenson_retracton.Q THEN
+            "Data_block_1".Arm_extended := TRUE;
+            "Data_block_1".TestStep := 46;
+        END_IF;
         
-      
+     46: //Now that the extended sensor is true, lets give time for the function block to perform
+         IF #On_delay_limit_sensor.Q THEN
+             IF "Pneumatic_pusher_DB_1".Q_is_extended THEN
+                 "Data_block_1".TestStep := 47;
+             ELSE
+                 "Data_block_1".Faultid := 45;
+                 "Data_block_1".TestStep := 999;
+             END_IF;
+         END_IF;
+         
+     47: // Check to see if state 3 has been reached
+         IF "Data_block_1".State = 3 THEN
+             "Data_block_1".Arm_extended := FALSE;
+             "Data_block_1".TestStep := 48;
+         ELSE
+             "Data_block_1".Faultid := 46;
+             "Data_block_1".TestStep := 999;
+         END_IF;
+     48: // Simulate the retraction movement occuring
+         IF #Extenson_retracton.Q THEN
+             "Data_block_1".Arm_retracted := TRUE;
+             "Data_block_1".TestStep := 49;
+         END_IF;
+     49: //Let function block recognise the retraction   
+         IF #On_delay_limit_sensor.Q THEN
+             IF "Pneumatic_pusher_DB_1".Q_is_retracted THEN
+                 "Data_block_1".TestStep := 50;
+             ELSE
+                 "Data_block_1".Faultid := 48;
+                 "Data_block_1".TestStep := 999;
+             END_IF;
+         END_IF;
+     50: // Ensure we have went back to the orginal state 
+         IF "Data_block_1".State = 0 THEN
+             "Data_block_1".TestStep := 100;
+         ELSE
+             "Data_block_1".Faultid := 49;
+             "Data_block_1".TestStep := 999;
+         END_IF;
             
     
             
@@ -316,6 +374,15 @@ CASE "Data_block_1".TestStep OF
         "Data_block_1".Start_test := FALSE;
         "Data_block_1".TestStep := 0;
         
+    999: // --- SAFE FAULT STATE ---
+        "Data_block_1".Testfault := TRUE;
+        "Data_block_1".Start_test := FALSE;
+        "Data_block_1".Global_estop := FALSE;
+        "Data_block_1".guarddoor := FALSE;
+        "Data_block_1".Safetyfeedbacksenssor := FALSE;
+        
+END_CASE;
+
     999: // --- SAFE FAULT STATE ---
         "Data_block_1".Testfault := TRUE;
         "Data_block_1".Start_test := FALSE;
