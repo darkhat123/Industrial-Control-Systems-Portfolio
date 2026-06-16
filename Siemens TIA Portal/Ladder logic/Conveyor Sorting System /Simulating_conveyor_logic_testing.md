@@ -10,14 +10,18 @@ Watch tables can interact with many different places containing our variables, i
 
 With the watch table defined and all of the necessary values matched to a specific entry in the watch table, we can begin planning how we intend to demonstrate the state of these variables to a human operator and how we allow them to be able to influence the state of these variables. In our scenario, we want to be able to keep everything in one place for easy access and configuration. Furthermore, we do not have a machine or network of machines big enough to warrant integrating into a SCADA system.
 
-# Defining a simulation function block
+# Using function blocks for simulation Logic
 
 Whilst we do have the options to sit and force values manually and watch the behaviour of the program dependent on the inputs and outputs we configure, however this is tedious and furthermore can miss nuances in the program that would not be possible to detect with the naked eye. in these scenarios the only way to make sure the machine is working correctly is to physically use testing logic such as SCL to manipulate the variables in the program and determine the effect they have on the programs behaviour under certain scenarios, this allows for rapid testing of all fault scenarios for a component and allows these tests to be repeated on any sensor we use. Furthermore, it allows us to make sure the program is safe to deploy to an actual industrial automation environment, before we actually commission it.
 
+# Why SCL for simulation Logic
+
 Again, we will use a function block to create our simulation program, and instead of choosing LAD, we will choose SCL, whilst ladder is preferred for troubleshooting technicians, simulation logic will likely be interacted with by ourselves or used by those competent in many PLC programming languages. Furthermore, whilst ladder logic is simple to read and understand, it is notoriously difficult to perform a test on ladder logic using another ladder logic program. Whereas when using SCL we have the case statement available, this statement allows us to control the behaviour of the simulation based on the conditions we specify in each case block, for example case 1 might check to see if a button is pressed or not, and choose between two integer values dependent on the outcome, this allows the simulation to react to multiple options and ensures it doesnt get stuck if no other option is available
 
-When writing the simulation, we had to make sure to use some timers; these will be multi-instance timers, which will be used many times across the program and have the same presets for all of them. Their main purpose is to allow time for any of the operations we override to take effect in the next scan cycle.
+# Using Multi-instance timers to reduce database instances
+When writing the simulation, we had to make sure to use some timers; these will be multi-instance timers, which will be used many times across the program and have the same presets for all of them. Their main purpose is to allow time for any of the operations we override to take effect in the next scan cycle. Multi-instance timers reduce the need for individual DB's for the timers; the function block handles the timer logic and structure within its own memory.
 
+# Creating a toggle for enabling and disabling the simulation block 
 Currently, whilst we have created our function block that will hold all of the simulation logic in one place, this will have no effect on any of the variables within the process image or in memory. We must ensure that the function block is called in our main program before we can begin manipulating variables and using time-based error detection in SCL. This is placed on a rung with a NO contact placed in front of it; this is a simulation-active contact. When true, the function block becomes energised, and the simulation can read and write from the same areas as the process image.
 
 <img width="661" height="173" alt="image" src="https://github.com/user-attachments/assets/6c5e22b6-ce83-468d-b58b-c9d6bfd0fe3f" />
@@ -26,6 +30,47 @@ Currently, whilst we have created our function block that will hold all of the s
 # Defining the simulation function block structure
 With the simulation block now created and it placed in the correct place in the program, we can begin to define all of the necessary variables that the simulation logic will need to perform its tasks. 
 
+## Variable	Purpose
+- Start_test - Master trigger used to begin execution of the automated test sequence.
+- TestStep - State machine that controls progression through the individual test cases and validation stages.
+- TestSuccess - Indicates that every validation step completed successfully and the full test sequence passed.
+- Testfault -	Indicates that a test failure occurred and the sequence entered the fault state.
+- Faultid -	Stores a unique identifier corresponding to the specific test that failed, allowing rapid troubleshooting.
+
+## Simulation Timing Variables
+**SafetyDropTimer**
+
+Used to verify that safety-related functions respond within an expected time window after a safety input is intentionally broken. The timer provides a timeout mechanism to detect failures where the safety circuit remains active longer than expected.
+
+**ResetPulseTimer**
+
+Used throughout the test framework to generate realistic operator button presses for reset and start commands. It simulates a momentary push button rather than a continuously held input.
+
+**State0Timer**
+
+Introduces a delay before evaluating the machine's startup state logic, ensuring the controller has sufficient time to process initial conditions.
+
+**State0FaultTimer**
+
+Used to validate fault generation during startup conditions. If the machine remains in the initial state beyond the allowable period, this timer confirms that the expected fault is raised.
+
+**True_sensor_on_time**
+
+Simulates a valid object detection by holding the virtual sensor active long enough to satisfy the configured debounce/on-delay requirements.
+
+**True_sensor_off_time**
+
+Simulates the object leaving the sensor and provides sufficient time for the sensor's off-delay filtering logic to complete.
+
+**Extenson_retracton**
+
+Represents the physical travel time of the pneumatic pusher during both extension and retraction movements. This creates a realistic simulation of actuator motion rather than instantaneous position changes.
+
+**On_delay_limit_sensor**
+
+Simulates the delay between a physical actuator reaching its position and the corresponding limit switch being recognised by the control logic. This validates correct handling of position feedback and sensor filtering.
+
+# The SCL simulation Code
 ``` // --- Call Timers Every Scan ---
 // The input (IN) checks if the state machine is currently on a step that needs that timer.
 #SafetyDropTimer(IN := ("Data_block_1".TestStep = 7 OR "Data_block_1".TestStep = 11 OR "Data_block_1".TestStep = 15 OR "Data_block_1".TestStep = 21 OR "Data_block_1".TestStep=25 OR "Data_block_1".TestStep=31),
