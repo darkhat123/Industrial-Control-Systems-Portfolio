@@ -82,6 +82,7 @@ This project focuses on demonstrating a safety and fault aware state machine use
 
 # Safety Circuit ( Network 1 - Check all inputs, Energise the coil if all true)
 This part of the program is concerned with ensuring that all of the safety features being monitored at any point by the PLC input are indeed true and therefore safe. These all utilise normally open contacts so that aslong as the power flows to this contact indicates a healthy status, such as Estop not pressed or guard door closed. This does not utilise a Set instruction for the coil as we only want this to be energised for aslong as these inputs remain true
+
 <img width="867" height="213" alt="image" src="https://github.com/user-attachments/assets/34856a8f-e269-4655-ab43-a6d64ea1e1c2" />
 
 # Safety Circuit ( Network 2 - Wait for system reset button and create a reset pulse bit)
@@ -90,6 +91,7 @@ In this network we are monitoring for a momentary press of the systemreset butto
 
 # Safety Circuit ( Network 3 - Monitor for reset pulse, ensure safetycircuit healthy, then latch the safetycircuit coil )
 Finally in this network we monitor for the system reset pulse for the one scan cycle, given this is pressed and their are no issues with safety at the present time then the safetycoil will become active and will latch until any of the safetyconditions are again broken
+
 <img width="820" height="297" alt="image" src="https://github.com/user-attachments/assets/6ceaa073-95bf-49bc-9905-7678dbabb9bf" />
 
 
@@ -100,6 +102,7 @@ This circuit is placed before any of our permissives as it must be evaulated bef
 
 # Pneumatic Pusher Fault Reset circuit( Network 5 - Fault reset logic )
 Just like the above reset circuit, this is simply focused on resetting local logic and ensures that the operator is aware of which faults are causing issues
+
 <img width="736" height="257" alt="image" src="https://github.com/user-attachments/assets/84f41a20-a0a0-4871-a4a9-7d13ce805ebe" />
 
 # Machine ready Circuit ( Network 6- ensure the machine is in the ready state)
@@ -109,15 +112,18 @@ In this circuit we are using the previously defined networks outputs from above 
 
 # Start button one shot for Autocycle Active (Network 7 - Uses a p-trig to ensure the startbutton is actually pressed)
 In this rung we use a startbuttons momentary press to feed to the p-trig block, this will then set the startsystempulse bit for one scan cycle, which will be fed to the next rung
+
 <img width="685" height="218" alt="image" src="https://github.com/user-attachments/assets/6e52a97d-20d6-4657-9c5d-b6963d238c74" />
 
 
 # AutocycleActive circuit (Network 8 - Used to allow the machine to enter auto mode)
 This network is focused on checking that the machine is ready, the start button one shot has been energised, given these conditions are met then the autocycle will become active and will latch, this latch is dependent on the machine continuing to be in the ready state, if any of the inputs holding ready true become false, then this will also become deenergised
+
 <img width="956" height="321" alt="image" src="https://github.com/user-attachments/assets/407b4b4d-cc97-4a73-aa66-653e02f679fb" />
 
 # Systempermissive assigned (Network 9 - Used when the machine must actuate or change the state)
  The machine is now acting independently aslong as the previous routine does not change, this bit is used to ensure no actions are taken without this bit remaining true through the process
+ 
 <img width="838" height="212" alt="image" src="https://github.com/user-attachments/assets/91553be4-34f6-4439-b635-1f823ad94f35" />
 
 # State 0 - Checking to ensure that the sensor is not blocked before beginning
@@ -141,12 +147,14 @@ Just like in the pushing state we ensure that the arm is extended and not retrac
 
 # State transitions for the machine 
 The following three networks are used to monitor for the state transition event and to assign a different value using the move Operator
+
 <img width="543" height="160" alt="image" src="https://github.com/user-attachments/assets/28a46a54-6866-4b28-a062-9778623d0153" />
 <img width="667" height="173" alt="image" src="https://github.com/user-attachments/assets/95e5d05d-820f-4c1c-a85e-39dcb23ea73c" />
 <img width="731" height="216" alt="image" src="https://github.com/user-attachments/assets/9fcf0d04-1631-4ab0-8113-3ffe6c85804c" />
 
 # Fault detection circuit
 The final rung of the actual program is where we aggregate all the fault detections of the scan cycle and energise the fault active given any of the following faults become true, the logic in the beginning that allows the resets will always come after this, it ensures that if the reset is performed then the machine will not suddenly start if a fault is still active.
+
 <img width="692" height="396" alt="image" src="https://github.com/user-attachments/assets/9606ad2a-c79e-4d23-a23f-b36f1f7ee65d" />
 
 # Simulatiion toggle block
